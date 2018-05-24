@@ -44,7 +44,7 @@ namespace Assignment2
                             table.Add(new row());
                             string[] r = sr.ReadLine().Split(',');
                             table.Last().time = double.Parse(r[0]);
-                            table.last().altitude = double.Parse(r[1]);
+                            table.Last().altitude = double.Parse(r[1]);
                         }
                     }
                 }
