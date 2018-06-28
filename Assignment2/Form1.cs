@@ -28,26 +28,29 @@ namespace Assignment2
             InitializeComponent();
         }
 
-        private void calculateCurrent()
+        // calculates the velocities
+        private void calculateVelocity()
         {
             for (int i=1; i < table.Count; i++)
             {
-                double dQ = table[i].acceleration - table[i - 1].acceleration;
+                double dQ = table[i].altitude - table[i - 1].altitude;
                 double dt = table[i].time - table[i - 1].time;
                 table[i].velocity = dQ / dt;
             }
         }
-        private void calculateDCurrent()
+
+        //Calculates acceleration
+        private void calculateAcceleration()
         {
             for (int i = 2; i < table.Count; i++)
             {
-                double dI = table[i].acceleration - table[i - 1].acceleration;
+                double dI = table[i].velocity - table[i - 1].velocity;
                 double dt = table[i].time - table[i - 1].time;
-                table[i].velocity = dI / dt;
+                table[i].acceleration = dI / dt;
             }
         }
 
-
+        // opens CSV files
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             openFileDialog1.FileName = "";
@@ -68,8 +71,8 @@ namespace Assignment2
                             table.Last().altitude = double.Parse(r[1]);
                         }
                     }
-                    calculateCurrent();
-                    calculateDCurrent();
+                    calculateVelocity();
+                    calculateAcceleration();
                 }
                 catch (IOException)
                 {
@@ -87,17 +90,32 @@ namespace Assignment2
                 {
                     MessageBox.Show(openFileDialog1.FileName + "has rows that have the same time");
                 }
-               
-                
-                
-                
-                }
             }
+        }
 
-        private void currentToolStripMenuItem_Click(object sender, EventArgs e)
+        //Draw the Velocity Graph
+        private void velocityToolStripMenuItem_Click(object sender, EventArgs e)
         {
             chart1.Series.Clear();
             chart1.ChartAreas[0].AxisX.IsMarginVisible = false;
+            Series series = new Series
+            {
+                Name = "velocity",
+                Color = Color.Blue,
+                IsVisibleInLegend = false,
+                IsXValueIndexed = true,
+                ChartType = SeriesChartType.Spline,
+                BorderWidth = 2
+            };
+            chart1.Series.Add(series);
+            foreach (row r in table.Skip(1))
+            {
+                series.Points.AddXY(r.time, r.velocity);
+            }
+            chart1.ChartAreas[0].AxisX.Title = "time /s";
+            chart1.ChartAreas[0].AxisY.Title = "velocity /A";
+            chart1.ChartAreas[0].RecalculateAxesScale();
+
 
 
         }
@@ -105,6 +123,98 @@ namespace Assignment2
         private void chart1_Click(object sender, EventArgs e)
         {
            
+        }
+        //Draws the altitude graph
+        private void AltitudeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            chart1.Series.Clear();
+            chart1.ChartAreas[0].AxisX.IsMarginVisible = false;
+            Series series = new Series
+            {
+                Name = "altitude",
+                Color = Color.Blue,
+                IsVisibleInLegend = false,
+                IsXValueIndexed = true,
+                ChartType = SeriesChartType.Spline,
+                BorderWidth = 2
+            };
+            chart1.Series.Add(series);
+            foreach (row r in table.Skip(1))
+            {
+                series.Points.AddXY(r.time, r.altitude);
+            }
+            chart1.ChartAreas[0].AxisX.Title = "time /s";
+            chart1.ChartAreas[0].AxisY.Title = "altitude /A";
+            chart1.ChartAreas[0].RecalculateAxesScale();
+        }
+        //Draws the acceleration graph
+        private void accelerationToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            chart1.Series.Clear();
+            chart1.ChartAreas[0].AxisX.IsMarginVisible = false;
+            Series series = new Series
+            {
+                Name = "acceleration",
+                Color = Color.Blue,
+                IsVisibleInLegend = false,
+                IsXValueIndexed = true,
+                ChartType = SeriesChartType.Spline,
+                BorderWidth = 2
+            };
+            chart1.Series.Add(series);
+            foreach (row r in table.Skip(1))
+            {
+                series.Points.AddXY(r.time, r.acceleration);
+            }
+            chart1.ChartAreas[0].AxisX.Title = "time /s";
+            chart1.ChartAreas[0].AxisY.Title = "acceleration /A";
+            chart1.ChartAreas[0].RecalculateAxesScale();
+        }
+        //Saves the chart as a PNG file
+        private void savePNGToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            saveFileDialog1.FileName = "";
+            saveFileDialog1.Filter = "png Files|*.png";
+            DialogResult results = saveFileDialog1.ShowDialog();
+            if (results == DialogResult.OK)
+            {
+                try
+                {
+                    chart1.SaveImage(saveFileDialog1.FileName, ChartImageFormat.Png);
+                }
+                catch
+                {
+                    MessageBox.Show(saveFileDialog1.FileName + " failed to save.");
+                }
+            }
+
+        }
+        //Saves the data as a CSV 
+        private void saveCSVToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            saveFileDialog1.FileName = "";
+            saveFileDialog1.Filter = "csv Files|*.csv";
+            DialogResult results = saveFileDialog1.ShowDialog();
+            if (results == DialogResult.OK)
+            {
+                try
+                {
+                    using (StreamWriter sw = new StreamWriter(saveFileDialog1.FileName))
+                    {
+                        sw.WriteLine("Time /s, Altitude /C, Velocity /A, Acceleration / A/s");
+                        foreach (row r in table)
+                        {
+                            sw.WriteLine(r.time + "," + r.altitude + "," + r.velocity + "," + r.acceleration);
+                        }
+                    }
+                }
+                catch
+                {
+                    MessageBox.Show(saveFileDialog1.FileName + " failed to save.");
+                }
+            }
+
         }
     }
     }
